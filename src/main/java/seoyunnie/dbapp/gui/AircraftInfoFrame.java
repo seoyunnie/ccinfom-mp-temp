@@ -225,11 +225,15 @@ public class AircraftInfoFrame extends JFrame {
             maintenanceHistoryList.getSelectedValue().ifPresent((period) -> {
                 Optional<File> file = maintenanceService.createReport(period);
 
-                file.ifPresent(
+                file.ifPresentOrElse(
                         (f) -> JOptionPane.showMessageDialog(
                                 this,
                                 "Report exported to: " + f.getAbsolutePath(), "Report Created",
-                                JOptionPane.INFORMATION_MESSAGE));
+                                JOptionPane.INFORMATION_MESSAGE),
+                        () -> JOptionPane.showMessageDialog(
+                                this,
+                                "The report could not be created.", "Report Creation Failed",
+                                JOptionPane.ERROR_MESSAGE));
             });
         });
     }

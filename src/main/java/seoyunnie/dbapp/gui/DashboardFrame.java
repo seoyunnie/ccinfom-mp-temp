@@ -240,11 +240,15 @@ public class DashboardFrame extends JFrame {
             aircraftList.getSelectedValue().ifPresent((aircraft) -> {
                 Optional<File> file = maintenanceService.createScheduleReport(aircraft);
 
-                file.ifPresent(
+                file.ifPresentOrElse(
                         (f) -> JOptionPane.showMessageDialog(
                                 this,
                                 "Report exported to: " + f.getAbsolutePath(), "Report Created",
-                                JOptionPane.INFORMATION_MESSAGE));
+                                JOptionPane.INFORMATION_MESSAGE),
+                        () -> JOptionPane.showMessageDialog(
+                                this,
+                                "The report could not be created.", "Report Creation Failed",
+                                JOptionPane.ERROR_MESSAGE));
             });
 
         });
@@ -253,11 +257,15 @@ public class DashboardFrame extends JFrame {
             aircraftList.getSelectedValue().ifPresent((aircraft) -> {
                 Optional<File> file = replacementPartService.createInventory(aircraft);
 
-                file.ifPresent(
+                file.ifPresentOrElse(
                         (f) -> JOptionPane.showMessageDialog(
                                 this,
                                 "Report exported to: " + f.getAbsolutePath(), "Report Created",
-                                JOptionPane.INFORMATION_MESSAGE));
+                                JOptionPane.INFORMATION_MESSAGE),
+                        () -> JOptionPane.showMessageDialog(
+                                this,
+                                "The report could not be created.", "Report Creation Failed",
+                                JOptionPane.ERROR_MESSAGE));
             });
 
         });
