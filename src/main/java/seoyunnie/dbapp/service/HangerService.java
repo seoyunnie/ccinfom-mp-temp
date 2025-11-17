@@ -43,6 +43,22 @@ public class HangerService {
         return hangers;
     }
 
+    public List<Hanger> getAllAvailable() {
+        List<Hanger> availableHangers = dao.getAll();
+
+        for (Hanger hanger : dao.getAll()) {
+            if (!cache.stream().anyMatch((a) -> a.getId() == hanger.getId())) {
+                cache.add(hanger);
+            }
+
+            if (hanger.getStatus().equals(Hanger.Status.AVAILABLE)) {
+                availableHangers.add(hanger);
+            }
+        }
+
+        return availableHangers;
+    }
+
     public boolean add(Hanger hanger) {
         if (cache.stream().anyMatch((h) -> h.getLocation().equals(hanger.getLocation())) ||
                 hanger.getLocation().length() > 255) {

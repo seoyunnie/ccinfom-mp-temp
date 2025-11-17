@@ -5,6 +5,7 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -27,14 +28,16 @@ public class MaintenancePeriodDAO {
             ResultSet rs = stmt.executeQuery();
 
             if (rs.next()) {
+                Date completedAt = rs.getDate("completed_at");
+
                 return Optional.of(new MaintenancePeriod(
                         rs.getInt("id"),
                         rs.getString("type"),
                         rs.getString("aircraft_registration"),
                         rs.getInt("hanger_id"),
                         rs.getString("status"),
-                        rs.getDate("started_at"),
-                        rs.getDate("completed_at")));
+                        rs.getDate("started_at").toLocalDate(),
+                        completedAt != null ? completedAt.toLocalDate() : null));
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -52,14 +55,74 @@ public class MaintenancePeriodDAO {
             ResultSet rs = stmt.executeQuery();
 
             while (rs.next()) {
+                Date completedAt = rs.getDate("completed_at");
+
                 periods.add(new MaintenancePeriod(
                         rs.getInt("id"),
                         rs.getString("type"),
                         rs.getString("aircraft_registration"),
                         rs.getInt("hanger_id"),
                         rs.getString("status"),
-                        rs.getDate("started_at"),
-                        rs.getDate("completed_at")));
+                        rs.getDate("started_at").toLocalDate(),
+                        completedAt != null ? completedAt.toLocalDate() : null));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return periods;
+    }
+
+    public List<MaintenancePeriod> getAll(String registration) {
+        List<MaintenancePeriod> periods = new ArrayList<>();
+
+        String q = "SELECT * FROM maintenance_periods WHERE aircraft_registration = ?";
+
+        try (PreparedStatement stmt = connection.prepareStatement(q)) {
+            stmt.setString(1, registration);
+
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                Date completedAt = rs.getDate("completed_at");
+
+                periods.add(new MaintenancePeriod(
+                        rs.getInt("id"),
+                        rs.getString("type"),
+                        rs.getString("aircraft_registration"),
+                        rs.getInt("hanger_id"),
+                        rs.getString("status"),
+                        rs.getDate("started_at").toLocalDate(),
+                        completedAt != null ? completedAt.toLocalDate() : null));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return periods;
+    }
+
+    public List<MaintenancePeriod> getAll(int hangerId) {
+        List<MaintenancePeriod> periods = new ArrayList<>();
+
+        String q = "SELECT * FROM maintenance_periods WHERE hanger_id = ?";
+
+        try (PreparedStatement stmt = connection.prepareStatement(q)) {
+            stmt.setInt(1, hangerId);
+
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                Date completedAt = rs.getDate("completed_at");
+
+                periods.add(new MaintenancePeriod(
+                        rs.getInt("id"),
+                        rs.getString("type"),
+                        rs.getString("aircraft_registration"),
+                        rs.getInt("hanger_id"),
+                        rs.getString("status"),
+                        rs.getDate("started_at").toLocalDate(),
+                        completedAt != null ? completedAt.toLocalDate() : null));
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -69,18 +132,23 @@ public class MaintenancePeriodDAO {
     }
 
     public void save(MaintenancePeriod period) {
-        String q = "INSERT INTO maintenance_periods (id, type, aircraft_registration, hanger_id, status, started_at, completed_at) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String q = "INSERT INTO maintenance_periods (type, aircraft_registration, hanger_id, status, started_at, completed_at) VALUES (?, ?, ?, ?, ?, ?)";
 
-        try (PreparedStatement stmt = connection.prepareStatement(q)) {
-            stmt.setInt(1, period.getId());
-            stmt.setString(2, period.getType());
-            stmt.setString(3, period.getAircraftRegistration());
-            stmt.setInt(4, period.getHangerId());
-            stmt.setString(5, period.getStatus().toString());
-            stmt.setDate(6, Date.valueOf(period.getStartedAt()));
-            stmt.setDate(7, period.getCompletedAt() != null ? Date.valueOf(period.getCompletedAt()) : null);
+        try (PreparedStatement stmt = connection.prepareStatement(q, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setString(1, period.getType());
+            stmt.setString(2, period.getAircraftRegistration());
+            stmt.setInt(3, period.getHangerId());
+            stmt.setString(4, period.getStatus().toString());
+            stmt.setDate(5, Date.valueOf(period.getStartedAt()));
+            stmt.setDate(6, period.getCompletedAt() != null ? Date.valueOf(period.getCompletedAt()) : null);
 
             stmt.executeUpdate();
+
+            ResultSet rs = stmt.getGeneratedKeys();
+
+            if (rs.next()) {
+                period.setId(rs.getInt("id"));
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }

@@ -16,6 +16,8 @@ import seoyunnie.dbapp.dao.ReplacementPartDAO;
 import seoyunnie.dbapp.gui.DashboardFrame;
 import seoyunnie.dbapp.service.AircraftService;
 import seoyunnie.dbapp.service.HangerService;
+import seoyunnie.dbapp.service.MaintenanceService;
+import seoyunnie.dbapp.service.ReplacementPartService;
 
 public class DBApp {
     private static Connection connection = null;
@@ -30,32 +32,39 @@ public class DBApp {
         } catch (SQLException e) {
             e.printStackTrace();
 
-            return;
+            System.exit(1);
         }
 
         var aircraftDAO = new AircraftDAO(connection);
         var aircraftCapacityDAO = new AircraftCapacityDAO(connection);
         var hangerDAO = new HangerDAO(connection);
-        var maintenancePeriodDAO = new MaintenancePeriodDAO(connection);
         var replacementPartDAO = new ReplacementPartDAO(connection);
+        var maintenancePeriodDAO = new MaintenancePeriodDAO(connection);
 
         var aircraftService = new AircraftService(aircraftDAO, aircraftCapacityDAO);
         var hangerService = new HangerService(hangerDAO);
+        var replacementPartService = new ReplacementPartService(replacementPartDAO);
+        var maintenanceService = new MaintenanceService(maintenancePeriodDAO, replacementPartService);
 
-        var dashboardFrame = new DashboardFrame(aircraftService, hangerService);
+        var dashboardFrame = new DashboardFrame(
+                aircraftService, hangerService, maintenanceService, replacementPartService);
 
         dashboardFrame.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent evt) {
+                int exitCode = 0;
+
                 try {
                     connection.close();
                 } catch (SQLException e) {
                     e.printStackTrace();
+
+                    exitCode = 1;
                 }
 
                 dashboardFrame.dispose();
 
-                System.exit(0);
+                System.exit(exitCode);
             }
         });
     }

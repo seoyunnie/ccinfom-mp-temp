@@ -3,7 +3,7 @@ package seoyunnie.dbapp.model;
 public class ReplacementPart {
     private final int number;
     private final String name;
-    private int amount;
+    private final int amount;
     private final String aircraftRegistration;
     private final int maintenanceId;
 
@@ -27,15 +27,16 @@ public class ReplacementPart {
         return amount;
     }
 
-    public void setAmount(int newAmount) {
-        this.amount = newAmount;
-    }
-
     public String getAircraftRegistration() {
         return aircraftRegistration;
     }
 
     public int getMaintenanceId() {
         return maintenanceId;
+    }
+
+    @Override
+    public String toString() {
+        return amount + "x " + name + " (#" + number + ")";
     }
 }

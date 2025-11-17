@@ -1,6 +1,5 @@
 package seoyunnie.dbapp.model;
 
-import java.sql.Date;
 import java.time.LocalDate;
 
 import seoyunnie.dbapp.util.StatusFormatter;
@@ -16,7 +15,7 @@ public class MaintenancePeriod {
         }
     }
 
-    private final int id;
+    private int id;
     private final String type;
     private final String aircraftRegistration;
     private final int hangerId;
@@ -24,20 +23,25 @@ public class MaintenancePeriod {
     private final LocalDate startedAt;
     private LocalDate completedAt = null;
 
-    public MaintenancePeriod(int id, String type, String aircraftRegistration, int hangerId, Status status,
-            Date startedAt) {
-        this.id = id;
+    public MaintenancePeriod(String type, String aircraftRegistration, int hangerId, Status status,
+            LocalDate startedAt) {
         this.type = type;
         this.aircraftRegistration = aircraftRegistration;
         this.hangerId = hangerId;
         this.status = status;
-        this.startedAt = startedAt.toLocalDate();
+        this.startedAt = startedAt;
     }
 
-    public MaintenancePeriod(int id, String type, String aircraftRegistration, int hangerId, String status,
-            Date startedAt) {
+    public MaintenancePeriod(int id, String type, String aircraftRegistration, int hangerId, Status status,
+            LocalDate startedAt) {
+        this(type, aircraftRegistration, hangerId, status, startedAt);
+
+        this.id = id;
+    }
+
+    public MaintenancePeriod(String type, String aircraftRegistration, int hangerId, String status,
+            LocalDate startedAt) {
         this(
-                id,
                 type,
                 aircraftRegistration,
                 hangerId,
@@ -48,21 +52,46 @@ public class MaintenancePeriod {
     }
 
     public MaintenancePeriod(int id, String type, String aircraftRegistration, int hangerId, String status,
-            Date startedAt, Date completedAt) {
+            LocalDate startedAt) {
+        this(type, aircraftRegistration, hangerId, status, startedAt);
+
+        this.id = id;
+    }
+
+    public MaintenancePeriod(String type, String aircraftRegistration, int hangerId, String status,
+            LocalDate startedAt, LocalDate completedAt) {
+        this(type, aircraftRegistration, hangerId, status, startedAt);
+
+        this.completedAt = completedAt;
+    }
+
+    public MaintenancePeriod(int id, String type, String aircraftRegistration, int hangerId, String status,
+            LocalDate startedAt, LocalDate completedAt) {
         this(id, type, aircraftRegistration, hangerId, status, startedAt);
 
-        this.completedAt = completedAt.toLocalDate();
+        this.completedAt = completedAt;
+    }
+
+    public MaintenancePeriod(String type, String aircraftRegistration, int hangerId, Status status,
+            LocalDate startedAt, LocalDate completedAt) {
+        this(type, aircraftRegistration, hangerId, status, startedAt);
+
+        this.completedAt = completedAt;
     }
 
     public MaintenancePeriod(int id, String type, String aircraftRegistration, int hangerId, Status status,
-            Date startedAt, Date completedAt) {
+            LocalDate startedAt, LocalDate completedAt) {
         this(id, type, aircraftRegistration, hangerId, status, startedAt);
 
-        this.completedAt = completedAt.toLocalDate();
+        this.completedAt = completedAt;
     }
 
     public int getId() {
         return id;
+    }
+
+    public void setId(int newId) {
+        this.id = newId;
     }
 
     public String getType() {
@@ -91,5 +120,10 @@ public class MaintenancePeriod {
 
     public void setCompletedAt(LocalDate newCompletedAt) {
         this.completedAt = newCompletedAt;
+    }
+
+    @Override
+    public String toString() {
+        return startedAt + " - " + (completedAt != null ? completedAt : "Ongoing");
     }
 }

@@ -4,5 +4,10 @@
 # Build Outputs
 **/target/
 
+# Generated Output
+maintenance_report.txt
+maintenance_schedule.txt
+replacement_parts_inventory.txt
+
 # Miscellaneous
 **/.DS_Store

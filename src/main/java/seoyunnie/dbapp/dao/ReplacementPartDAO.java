@@ -17,7 +17,7 @@ public class ReplacementPartDAO {
         this.connection = connection;
     }
 
-    public Optional<ReplacementPart> get(Integer num, Integer maintenanceId) {
+    public Optional<ReplacementPart> get(int num, int maintenanceId) {
         String q = "SELECT * FROM replacement_parts WHERE number = ? AND maintenance_id = ?";
 
         try (PreparedStatement stmt = connection.prepareStatement(q)) {
@@ -47,6 +47,56 @@ public class ReplacementPartDAO {
         String q = "SELECT * FROM replacement_parts";
 
         try (PreparedStatement stmt = connection.prepareStatement(q)) {
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                parts.add(new ReplacementPart(
+                        rs.getInt("number"),
+                        rs.getString("name"),
+                        rs.getInt("amount"),
+                        rs.getString("aircraft_registration"),
+                        rs.getInt("maintenance_id")));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return parts;
+    }
+
+    public List<ReplacementPart> getAll(String registration) {
+        List<ReplacementPart> parts = new ArrayList<>();
+
+        String q = "SELECT * FROM replacement_parts WHERE aircraft_registration = ?";
+
+        try (PreparedStatement stmt = connection.prepareStatement(q)) {
+            stmt.setString(1, registration);
+
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                parts.add(new ReplacementPart(
+                        rs.getInt("number"),
+                        rs.getString("name"),
+                        rs.getInt("amount"),
+                        rs.getString("aircraft_registration"),
+                        rs.getInt("maintenance_id")));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return parts;
+    }
+
+    public List<ReplacementPart> getAll(int maintenanceId) {
+        List<ReplacementPart> parts = new ArrayList<>();
+
+        String q = "SELECT * FROM replacement_parts WHERE maintenance_id = ?";
+
+        try (PreparedStatement stmt = connection.prepareStatement(q)) {
+            stmt.setInt(1, maintenanceId);
+
             ResultSet rs = stmt.executeQuery();
 
             while (rs.next()) {
@@ -94,7 +144,7 @@ public class ReplacementPartDAO {
         }
     }
 
-    public void delete(Integer num, Integer maintenanceId) {
+    public void delete(int num, int maintenanceId) {
         String q = "DELETE FROM replacement_parts WHERE number = ? AND maintenance_id = ?";
 
         try (PreparedStatement stmt = connection.prepareStatement(q)) {
@@ -105,6 +155,5 @@ public class ReplacementPartDAO {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
     }
 }

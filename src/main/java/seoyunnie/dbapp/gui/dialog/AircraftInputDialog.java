@@ -1,4 +1,4 @@
-package seoyunnie.dbapp.gui;
+package seoyunnie.dbapp.gui.dialog;
 
 import java.awt.GridLayout;
 import java.util.Optional;
@@ -11,24 +11,24 @@ import javax.swing.JTextField;
 public class AircraftInputDialog extends JPanel {
     private static final int TEXT_FIELD_LENGTH = 10;
 
-    private final JTextField registrationInputField = new JTextField(TEXT_FIELD_LENGTH);
-    private final JTextField modelInputField = new JTextField(TEXT_FIELD_LENGTH);
+    private final JTextField registrationInField = new JTextField(TEXT_FIELD_LENGTH);
+    private final JTextField modelInField = new JTextField(TEXT_FIELD_LENGTH);
 
     public AircraftInputDialog() {
         setLayout(new GridLayout(2, 2, 5, 5));
 
         add(new JLabel("Registration Mark"));
-        add(registrationInputField);
+        add(registrationInField);
 
         add(new JLabel("Model"));
-        add(modelInputField);
+        add(modelInField);
     }
 
     public Optional<String> getRegistration() {
-        return Optional.ofNullable(registrationInputField.getText()).filter(Predicate.not(String::isEmpty));
+        return Optional.ofNullable(registrationInField.getText()).filter(Predicate.not(String::isEmpty));
     }
 
     public Optional<String> getModel() {
-        return Optional.ofNullable(modelInputField.getText()).filter(Predicate.not(String::isEmpty));
+        return Optional.ofNullable(modelInField.getText()).filter(Predicate.not(String::isEmpty));
     }
 }

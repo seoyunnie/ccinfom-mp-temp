@@ -1,70 +1,169 @@
 package seoyunnie.dbapp.gui;
 
+import java.awt.BorderLayout;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
 import java.util.Optional;
 
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
 
+import seoyunnie.dbapp.gui.dialog.AircraftInputDialog;
 import seoyunnie.dbapp.model.Aircraft;
 import seoyunnie.dbapp.model.AircraftCapacity;
 import seoyunnie.dbapp.model.Hanger;
 import seoyunnie.dbapp.service.AircraftService;
 import seoyunnie.dbapp.service.HangerService;
+import seoyunnie.dbapp.service.MaintenanceService;
+import seoyunnie.dbapp.service.ReplacementPartService;
 
 public class DashboardFrame extends JFrame {
-    private final ListPanel aircraftList = new ListPanel();
+    private final ListPanel<Aircraft> aircraftList = new ListPanel<>();
     private final JButton addAircraftButton = new JButton("Add Aircraft");
-    private final JButton removeAircraftButton = new JButton("Remove Aircraft");
 
-    private final ListPanel hangerList = new ListPanel();
+    private final ListPanel<Hanger> hangerList = new ListPanel<>();
     private final JButton addHangerButton = new JButton("Add Hanger");
-    private final JButton removeHangerButton = new JButton("Remove Hanger");
+
+    private final JButton createMaintenanceScheduleButton = new JButton("Create Maintenance Schedule");
+    private final JButton createPartsInventoryButton = new JButton("Create Replacement Parts Inventory");
 
     private final AircraftService aircraftService;
     private final HangerService hangerService;
+    private final MaintenanceService maintenanceService;
+    private final ReplacementPartService replacementPartService;
 
-    public DashboardFrame(AircraftService aircraftService, HangerService hangerService) {
+    public DashboardFrame(AircraftService aircraftService, HangerService hangerService,
+            MaintenanceService maintenanceService, ReplacementPartService replacementPartService) {
         super("Aircraft Maintenance Dashboard");
 
         this.aircraftService = aircraftService;
         this.hangerService = hangerService;
+        this.maintenanceService = maintenanceService;
+        this.replacementPartService = replacementPartService;
 
+        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+
+        initializeComponents();
+        addComponentListeners();
+
+        pack();
+        setResizable(false);
+
+        setLocationRelativeTo(null);
+        setVisible(true);
+
+        initializeListElements();
+    }
+
+    private void initializeComponents() {
+        var dashboardPanel = new JPanel();
+        dashboardPanel.setLayout(new GridBagLayout());
+
+        var fleetLabel = new JLabel("Fleet");
+        fleetLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        fleetLabel.setFont(new Font("Arial", Font.BOLD, 15));
+
+        var constraints = new GridBagConstraints();
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.gridx = 0;
+        constraints.gridy = 0;
+        constraints.insets = new Insets(12, 20, 4, 20);
+
+        dashboardPanel.add(fleetLabel, constraints);
+
+        constraints.gridy++;
+        constraints.insets.top = 3;
+        constraints.insets.bottom = 5;
+
+        dashboardPanel.add(aircraftList, constraints);
+
+        constraints.gridy++;
+        constraints.insets.top = 10;
+
+        dashboardPanel.add(addAircraftButton, constraints);
+
+        var hangersLabel = new JLabel("Hangers");
+        hangersLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        hangersLabel.setFont(new Font("Arial", Font.BOLD, 15));
+
+        constraints.gridx++;
+        constraints.gridy = 0;
+        constraints.insets = new Insets(12, 20, 4, 20);
+
+        dashboardPanel.add(hangersLabel, constraints);
+
+        constraints.gridy++;
+        constraints.insets.top = 3;
+        constraints.insets.bottom = 5;
+
+        dashboardPanel.add(hangerList, constraints);
+
+        constraints.gridy++;
+        constraints.insets.top = 10;
+        constraints.insets.bottom = 10;
+
+        dashboardPanel.add(addHangerButton, constraints);
+
+        add(dashboardPanel, BorderLayout.PAGE_START);
+
+        add(new JSeparator(JSeparator.HORIZONTAL), BorderLayout.CENTER);
+
+        var reportsPanel = new JPanel();
+        reportsPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        reportsPanel.setLayout(new GridLayout(1, 0, 10, 10));
+
+        reportsPanel.add(createMaintenanceScheduleButton);
+        reportsPanel.add(createPartsInventoryButton);
+
+        add(reportsPanel, BorderLayout.PAGE_END);
+    }
+
+    private void addComponentListeners() {
         aircraftList.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent evt) {
                 if (evt.getClickCount() == 2) {
-                    aircraftList.getTrimmedSelectedValue().ifPresent((r) -> {
-                        Aircraft aircraft = aircraftService.getByRegistration(r).get();
-
-                        new AircraftInfoPanel(
-                                DashboardFrame.this,
-                                aircraft, aircraftService.getCapacityByModel(aircraft.getModel()).get());
-                    });
+                    aircraftList.getSelectedValue().ifPresent((a) -> new AircraftInfoFrame(
+                            maintenanceService, hangerService, replacementPartService,
+                            DashboardFrame.this,
+                            a, aircraftService.getCapacityByModel(a.getModel()).get()));
                 }
             }
         });
 
         addAircraftButton.addActionListener((evt) -> {
-            var aircraftInputDialog = new AircraftInputDialog();
+            var aircraftInDialog = new AircraftInputDialog();
 
-            int res = JOptionPane.showConfirmDialog(
+            int confirmation = JOptionPane.showConfirmDialog(
                     this,
-                    aircraftInputDialog, "Add Aircraft",
+                    aircraftInDialog, "Add Aircraft",
                     JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
-            Optional<String> registration = aircraftInputDialog.getRegistration();
-            Optional<String> model = aircraftInputDialog.getModel();
+            if (confirmation == JOptionPane.OK_OPTION) {
+                Optional<String> registration = aircraftInDialog.getRegistration();
+                Optional<String> model = aircraftInDialog.getModel();
 
-            if (res == JOptionPane.OK_OPTION && registration.isPresent() && model.isPresent()) {
+                if (!registration.isPresent() || !model.isPresent()) {
+                    JOptionPane.showMessageDialog(
+                            this,
+                            "Please fill up all input fields!", "Missing Input",
+                            JOptionPane.ERROR_MESSAGE);
+
+                    return;
+                }
+
                 if (aircraftService.getCapacityByModel(model.get()).isEmpty()) {
                     String raw_capacity = JOptionPane.showInputDialog(
                             this,
@@ -77,11 +176,13 @@ public class DashboardFrame extends JFrame {
                             int capacity = Integer.parseInt(raw_capacity);
 
                             aircraftService.addCapacity(new AircraftCapacity(model.get(), capacity));
-                        } catch (NumberFormatException e) {
+                        } catch (NumberFormatException ignored) {
                             JOptionPane.showMessageDialog(
                                     this,
-                                    "Please enter a valid whole number.", "Invalid Input",
+                                    "Please enter a valid whole number!", "Invalid Input",
                                     JOptionPane.ERROR_MESSAGE);
+
+                            return;
                         }
                     }
                 }
@@ -97,22 +198,18 @@ public class DashboardFrame extends JFrame {
                     return;
                 }
 
-                aircraftList.addElement(aircraft.toString());
+                aircraftList.addElement(aircraft);
             }
-        });
-
-        removeAircraftButton.addActionListener((evt) -> {
-            aircraftList.getTrimmedSelectedValue().ifPresent((r) -> aircraftService.removeByRegistration(r));
-            aircraftList.getSelectedValue().ifPresent((r) -> aircraftList.removeElement(r));
         });
 
         hangerList.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent evt) {
                 if (evt.getClickCount() == 2) {
-                    hangerList.getTrimmedSelectedValue().ifPresent((i) -> new HangerInfoPanel(
+                    hangerList.getSelectedValue().ifPresent((h) -> new HangerInfoFrame(
+                            maintenanceService,
                             DashboardFrame.this,
-                            hangerService.getById(Integer.parseInt(i)).get()));
+                            h));
                 }
             }
         });
@@ -123,99 +220,56 @@ public class DashboardFrame extends JFrame {
                     "Enter the location of the hanger:", "Add Hanger",
                     JOptionPane.QUESTION_MESSAGE);
 
-            var hanger = new Hanger(location, Hanger.Status.AVAILABLE);
+            if (location != null && !location.isEmpty()) {
+                var hanger = new Hanger(location, Hanger.Status.AVAILABLE);
 
-            if (!hangerService.add(hanger)) {
-                JOptionPane.showMessageDialog(
-                        this,
-                        "A hanger already exists on the same location.", "Occupied Hanger Location",
-                        JOptionPane.WARNING_MESSAGE);
+                if (!hangerService.add(hanger)) {
+                    JOptionPane.showMessageDialog(
+                            this,
+                            "A hanger already exists on the same location.", "Occupied Hanger Location",
+                            JOptionPane.WARNING_MESSAGE);
 
-                return;
+                    return;
+                }
+
+                hangerList.addElement(hanger);
             }
-
-            hangerList.addElement(hanger.toString());
         });
 
-        removeHangerButton.addActionListener((evt) -> {
-            hangerList.getTrimmedSelectedValue().ifPresent((i) -> hangerService.removeById(Integer.parseInt(i)));
-            hangerList.getSelectedValue().ifPresent((i) -> hangerList.removeElement(i));
+        createMaintenanceScheduleButton.addActionListener((evt) -> {
+            aircraftList.getSelectedValue().ifPresent((aircraft) -> {
+                Optional<File> file = maintenanceService.createScheduleReport(aircraft);
+
+                file.ifPresent(
+                        (f) -> JOptionPane.showMessageDialog(
+                                this,
+                                "Report exported to: " + f.getAbsolutePath(), "Report Created",
+                                JOptionPane.INFORMATION_MESSAGE));
+            });
+
         });
 
-        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-        setResizable(false);
+        createPartsInventoryButton.addActionListener((evt) -> {
+            aircraftList.getSelectedValue().ifPresent((aircraft) -> {
+                Optional<File> file = replacementPartService.createInventory(aircraft);
 
-        setLayout(new GridBagLayout());
+                file.ifPresent(
+                        (f) -> JOptionPane.showMessageDialog(
+                                this,
+                                "Report exported to: " + f.getAbsolutePath(), "Report Created",
+                                JOptionPane.INFORMATION_MESSAGE));
+            });
 
-        var fleetLabel = new JLabel("Fleet");
-        fleetLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        fleetLabel.setFont(new Font("Arial", Font.BOLD, 15));
-
-        var constraints = new GridBagConstraints();
-        constraints.fill = GridBagConstraints.HORIZONTAL;
-        constraints.gridx = 0;
-        constraints.gridy = 0;
-        constraints.insets = new Insets(12, 10, 4, 10);
-
-        add(fleetLabel, constraints);
-
-        constraints.gridy++;
-        constraints.insets.top = 3;
-        constraints.insets.bottom = 5;
-
-        add(aircraftList, constraints);
-
-        constraints.gridy++;
-        constraints.insets.top = 5;
-
-        add(addAircraftButton, constraints);
-
-        constraints.gridy++;
-        constraints.insets.bottom = 10;
-
-        add(removeAircraftButton, constraints);
-
-        var hangersLabel = new JLabel("Hangers");
-        hangersLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        hangersLabel.setFont(new Font("Arial", Font.BOLD, 15));
-
-        constraints.gridx++;
-        constraints.gridy = 0;
-        constraints.insets = new Insets(12, 10, 4, 10);
-
-        add(hangersLabel, constraints);
-
-        constraints.gridy++;
-        constraints.insets.top = 3;
-        constraints.insets.bottom = 5;
-
-        add(hangerList, constraints);
-
-        constraints.gridy++;
-        constraints.insets.top = 5;
-
-        add(addHangerButton, constraints);
-
-        constraints.gridy++;
-        constraints.insets.bottom = 10;
-
-        add(removeHangerButton, constraints);
-
-        pack();
-
-        initialize();
-
-        setLocationRelativeTo(null);
-        setVisible(true);
+        });
     }
 
-    private void initialize() {
+    private void initializeListElements() {
         for (Aircraft aircraft : aircraftService.getAll()) {
-            aircraftList.addElement(aircraft.toString());
+            aircraftList.addElement(aircraft);
         }
 
         for (Hanger hanger : hangerService.getAll()) {
-            hangerList.addElement(hanger.toString());
+            hangerList.addElement(hanger);
         }
     }
 }

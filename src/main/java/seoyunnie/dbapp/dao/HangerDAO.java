@@ -18,7 +18,7 @@ public class HangerDAO {
         this.connection = connection;
     }
 
-    public Optional<Hanger> get(Integer id) {
+    public Optional<Hanger> get(int id) {
         String q = "SELECT * FROM hangers WHERE id = ?";
 
         try (PreparedStatement stmt = connection.prepareStatement(q)) {
@@ -66,7 +66,7 @@ public class HangerDAO {
             ResultSet rs = stmt.getGeneratedKeys();
 
             if (rs.next()) {
-                hanger.setId(rs.getInt(1));
+                hanger.setId(rs.getInt("id"));
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -86,7 +86,7 @@ public class HangerDAO {
         }
     }
 
-    public void delete(Integer id) {
+    public void delete(int id) {
         String q = "DELETE FROM hangers WHERE id = ?";
 
         try (PreparedStatement stmt = connection.prepareStatement(q)) {

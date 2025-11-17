@@ -2,7 +2,7 @@ package seoyunnie.dbapp.model;
 
 public class AircraftCapacity {
     private final String model;
-    private int capacity;
+    private final int capacity;
 
     public AircraftCapacity(String model, int capacity) {
         this.model = model;
@@ -15,9 +15,5 @@ public class AircraftCapacity {
 
     public int getCapacity() {
         return capacity;
-    }
-
-    public void setCapacity(int newCapacity) {
-        this.capacity = newCapacity;
     }
 }

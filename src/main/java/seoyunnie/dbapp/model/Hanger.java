@@ -62,6 +62,6 @@ public class Hanger {
 
     @Override
     public String toString() {
-        return id + " (" + location + ")";
+        return "#" + id + " (" + location + ")";
     }
 }
