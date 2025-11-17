@@ -1,0 +1,12 @@
+# Checking-in and Checking-out
+*             text=auto
+*.java        text diff=java
+*.md          text diff=markdown
+*.sql         text
+*.txt         text
+*.xml         text
+.editorconfig text
+
+# Archive Creation
+.gitattributes export-ignore
+.gitignore     export-ignore
