@@ -21,25 +21,30 @@ import javax.swing.SwingConstants;
 
 import seoyunnie.dbapp.gui.dialog.ReplacementPartInputDialog;
 import seoyunnie.dbapp.model.Aircraft;
+import seoyunnie.dbapp.model.Hanger;
 import seoyunnie.dbapp.model.MaintenancePeriod;
 import seoyunnie.dbapp.model.ReplacementPart;
 import seoyunnie.dbapp.service.ReplacementPartService;
 
 public class MaintenanceInfoFrame extends JFrame {
+    private static final int TEXT_FIELD_LENGTH = 20;
+
     private final ListPanel<ReplacementPart> replacementPartList = new ListPanel<>();
     private final JButton addReplacementPartsButton = new JButton("Add Replacement Parts");
 
     private final MaintenancePeriod period;
     private final Aircraft aircraft;
+    private final Hanger hanger;
 
     private final ReplacementPartService replacementPartService;
 
     public MaintenanceInfoFrame(ReplacementPartService replacementPartService, Component parentComp,
-            MaintenancePeriod period, Aircraft aircraft) {
+            MaintenancePeriod period, Aircraft aircraft, Hanger hanger) {
         super("Maintenance Period Info");
 
         this.period = period;
         this.aircraft = aircraft;
+        this.hanger = hanger;
 
         this.replacementPartService = replacementPartService;
 
@@ -64,28 +69,35 @@ public class MaintenanceInfoFrame extends JFrame {
 
         infoPanel.add(new JLabel("ID"));
 
-        var idField = new JTextField(Integer.toString(period.getId()));
+        var idField = new JTextField(Integer.toString(period.getId()), TEXT_FIELD_LENGTH);
         idField.setEditable(false);
 
         infoPanel.add(idField);
 
         infoPanel.add(new JLabel("Maintenance Type"));
 
-        var typeField = new JTextField(period.getType());
+        var typeField = new JTextField(period.getType(), TEXT_FIELD_LENGTH);
         typeField.setEditable(false);
 
         infoPanel.add(typeField);
 
+        infoPanel.add(new JLabel("Hanger Location"));
+
+        var locationField = new JTextField(hanger.getLocation(), TEXT_FIELD_LENGTH);
+        locationField.setEditable(false);
+
+        infoPanel.add(locationField);
+
         infoPanel.add(new JLabel("Status"));
 
-        var statusField = new JTextField(period.getStatus().toString().toUpperCase());
+        var statusField = new JTextField(period.getStatus().toString().toUpperCase(), TEXT_FIELD_LENGTH);
         statusField.setEditable(false);
 
         infoPanel.add(statusField);
 
         infoPanel.add(new JLabel("Started at"));
 
-        var startedAtField = new JTextField(period.getCompletedAt().toString());
+        var startedAtField = new JTextField(period.getStartedAt().toString(), TEXT_FIELD_LENGTH);
         startedAtField.setEditable(false);
 
         infoPanel.add(startedAtField);
@@ -94,7 +106,9 @@ public class MaintenanceInfoFrame extends JFrame {
 
         var completedAt = period.getCompletedAt();
 
-        var completedAtField = new JTextField(completedAt != null ? completedAt.toString() : "ONGOING");
+        var completedAtField = new JTextField(
+                completedAt != null ? completedAt.toString() : "ONGOING",
+                TEXT_FIELD_LENGTH);
         completedAtField.setEditable(false);
 
         infoPanel.add(completedAtField);
@@ -124,8 +138,13 @@ public class MaintenanceInfoFrame extends JFrame {
 
         maintenancePanel.add(replacementPartList, constraints);
 
+        if (period.getCompletedAt() != null) {
+            addReplacementPartsButton.setEnabled(false);
+        }
+
         constraints.gridy++;
         constraints.insets.top = 10;
+        constraints.insets.bottom = 10;
 
         maintenancePanel.add(addReplacementPartsButton, constraints);
 

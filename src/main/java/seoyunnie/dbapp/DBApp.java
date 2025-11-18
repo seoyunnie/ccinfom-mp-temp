@@ -44,7 +44,9 @@ public class DBApp {
         var aircraftService = new AircraftService(aircraftDAO, aircraftCapacityDAO);
         var hangerService = new HangerService(hangerDAO);
         var replacementPartService = new ReplacementPartService(replacementPartDAO);
-        var maintenanceService = new MaintenanceService(maintenancePeriodDAO, replacementPartService);
+        var maintenanceService = new MaintenanceService(
+                maintenancePeriodDAO,
+                aircraftService, hangerService, replacementPartService);
 
         var dashboardFrame = new DashboardFrame(
                 aircraftService, hangerService, maintenanceService, replacementPartService);

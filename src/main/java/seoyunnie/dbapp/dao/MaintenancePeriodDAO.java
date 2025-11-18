@@ -147,7 +147,7 @@ public class MaintenancePeriodDAO {
             ResultSet rs = stmt.getGeneratedKeys();
 
             if (rs.next()) {
-                period.setId(rs.getInt("id"));
+                period.setId(rs.getInt(1));
             }
         } catch (SQLException e) {
             e.printStackTrace();

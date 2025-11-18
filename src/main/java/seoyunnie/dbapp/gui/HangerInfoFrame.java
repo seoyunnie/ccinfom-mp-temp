@@ -7,6 +7,8 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 import javax.swing.BorderFactory;
 import javax.swing.JFrame;
@@ -18,25 +20,35 @@ import javax.swing.SwingConstants;
 
 import seoyunnie.dbapp.model.Hanger;
 import seoyunnie.dbapp.model.MaintenancePeriod;
+import seoyunnie.dbapp.service.AircraftService;
 import seoyunnie.dbapp.service.MaintenanceService;
+import seoyunnie.dbapp.service.ReplacementPartService;
 
 public class HangerInfoFrame extends JFrame {
+    private static final int TEXT_FIELD_LENGTH = 20;
+
     private final ListPanel<MaintenancePeriod> maintenanceHistoryList = new ListPanel<>();
 
     private final Hanger hanger;
 
     private final MaintenanceService maintenanceService;
+    private final AircraftService aircraftService;
+    private final ReplacementPartService replacementPartService;
 
-    public HangerInfoFrame(MaintenanceService maintenanceService, Component parentComp, Hanger hanger) {
+    public HangerInfoFrame(MaintenanceService maintenanceService, AircraftService aircraftService,
+            ReplacementPartService replacementPartService, Component parentComp, Hanger hanger) {
         super("Hanger Info");
 
         this.hanger = hanger;
 
         this.maintenanceService = maintenanceService;
+        this.aircraftService = aircraftService;
+        this.replacementPartService = replacementPartService;
 
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
         initializeComponents();
+        addComponentListeners();
 
         pack();
         setResizable(false);
@@ -54,21 +66,21 @@ public class HangerInfoFrame extends JFrame {
 
         infoPanel.add(new JLabel("ID"));
 
-        var idField = new JTextField(Integer.toString(hanger.getId()), 10);
+        var idField = new JTextField(Integer.toString(hanger.getId()), TEXT_FIELD_LENGTH);
         idField.setEditable(false);
 
         infoPanel.add(idField);
 
         infoPanel.add(new JLabel("Location"));
 
-        var locationField = new JTextField(hanger.getLocation(), 10);
+        var locationField = new JTextField(hanger.getLocation(), TEXT_FIELD_LENGTH);
         locationField.setEditable(false);
 
         infoPanel.add(locationField);
 
         infoPanel.add(new JLabel("Status"));
 
-        var statusField = new JTextField(hanger.getStatus().toString().toUpperCase(), 10);
+        var statusField = new JTextField(hanger.getStatus().toString().toUpperCase(), TEXT_FIELD_LENGTH);
         statusField.setEditable(false);
 
         infoPanel.add(statusField);
@@ -99,6 +111,20 @@ public class HangerInfoFrame extends JFrame {
         maintenancePanel.add(maintenanceHistoryList, constraints);
 
         add(maintenancePanel, BorderLayout.PAGE_END);
+    }
+
+    private void addComponentListeners() {
+        maintenanceHistoryList.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent evt) {
+                if (evt.getClickCount() == 2) {
+                    maintenanceHistoryList.getSelectedValue().ifPresent((p) -> new MaintenanceInfoFrame(
+                            replacementPartService,
+                            HangerInfoFrame.this,
+                            p, aircraftService.getByRegistration(p.getAircraftRegistration()).get(), hanger));
+                }
+            }
+        });
     }
 
     private void initializeListElements() {

@@ -207,7 +207,7 @@ public class DashboardFrame extends JFrame {
             public void mouseClicked(MouseEvent evt) {
                 if (evt.getClickCount() == 2) {
                     hangerList.getSelectedValue().ifPresent((h) -> new HangerInfoFrame(
-                            maintenanceService,
+                            maintenanceService, aircraftService, replacementPartService,
                             DashboardFrame.this,
                             h));
                 }

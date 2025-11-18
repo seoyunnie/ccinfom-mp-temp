@@ -66,7 +66,7 @@ public class HangerDAO {
             ResultSet rs = stmt.getGeneratedKeys();
 
             if (rs.next()) {
-                hanger.setId(rs.getInt("id"));
+                hanger.setId(rs.getInt(1));
             }
         } catch (SQLException e) {
             e.printStackTrace();

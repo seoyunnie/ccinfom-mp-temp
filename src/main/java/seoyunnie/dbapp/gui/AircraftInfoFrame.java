@@ -32,6 +32,8 @@ import seoyunnie.dbapp.service.MaintenanceService;
 import seoyunnie.dbapp.service.ReplacementPartService;
 
 public class AircraftInfoFrame extends JFrame {
+    private static final int TEXT_FIELD_LENGTH = 20;
+
     private final ListPanel<MaintenancePeriod> maintenanceHistoryList = new ListPanel<>();
     private final JButton scheduleMaintenanceButton = new JButton("Schedule Maintenance");
     private final JButton returnAircraftButton = new JButton("Return Aircraft");
@@ -78,28 +80,28 @@ public class AircraftInfoFrame extends JFrame {
 
         infoPanel.add(new JLabel("Registration Mark"));
 
-        var registrationField = new JTextField(aircraft.getRegistration(), 10);
+        var registrationField = new JTextField(aircraft.getRegistration(), TEXT_FIELD_LENGTH);
         registrationField.setEditable(false);
 
         infoPanel.add(registrationField);
 
         infoPanel.add(new JLabel("Model"));
 
-        var modelField = new JTextField(aircraft.getModel(), 10);
+        var modelField = new JTextField(aircraft.getModel(), TEXT_FIELD_LENGTH);
         modelField.setEditable(false);
 
         infoPanel.add(modelField);
 
         infoPanel.add(new JLabel("Passenger Capacity"));
 
-        var capacityField = new JTextField(Integer.toString(aircraftCapacity.getCapacity()), 10);
+        var capacityField = new JTextField(Integer.toString(aircraftCapacity.getCapacity()), TEXT_FIELD_LENGTH);
         capacityField.setEditable(false);
 
         infoPanel.add(capacityField);
 
         infoPanel.add(new JLabel("Status"));
 
-        var statusField = new JTextField(aircraft.getStatus().toString().toUpperCase(), 10);
+        var statusField = new JTextField(aircraft.getStatus().toString().toUpperCase(), TEXT_FIELD_LENGTH);
         statusField.setEditable(false);
 
         infoPanel.add(statusField);
@@ -129,10 +131,19 @@ public class AircraftInfoFrame extends JFrame {
 
         maintenancePanel.add(maintenanceHistoryList, constraints);
 
+        if (aircraft.getStatus().equals(Aircraft.Status.UNDER_MAINTENANCE) ||
+                hangerService.getAllAvailable().size() == 0) {
+            scheduleMaintenanceButton.setEnabled(false);
+        }
+
         constraints.gridy++;
         constraints.insets.top = 5;
 
         maintenancePanel.add(scheduleMaintenanceButton, constraints);
+
+        if (aircraft.getStatus().equals(Aircraft.Status.IN_SERVICE)) {
+            returnAircraftButton.setEnabled(false);
+        }
 
         constraints.gridy++;
         constraints.insets.bottom = 10;
@@ -162,7 +173,7 @@ public class AircraftInfoFrame extends JFrame {
                     maintenanceHistoryList.getSelectedValue().ifPresent((p) -> new MaintenanceInfoFrame(
                             replacementPartService,
                             AircraftInfoFrame.this,
-                            p, aircraft));
+                            p, aircraft, hangerService.getById(p.getHangerId()).get()));
                 }
             }
         });
@@ -209,16 +220,18 @@ public class AircraftInfoFrame extends JFrame {
             Optional<MaintenancePeriod> currMaintenancePeriod = maintenanceService.getAllByAircraft(aircraft).stream()
                     .filter((p) -> p.getCompletedAt() == null).findFirst();
 
-            currMaintenancePeriod.ifPresent((p) -> maintenanceService.completeMaintenance(p));
+            currMaintenancePeriod.ifPresent((p) -> {
+                maintenanceService.completeMaintenance(p);
 
-            int confirmation = JOptionPane.showConfirmDialog(
-                    this,
-                    "Close this window to view changes?", "Data Outdated",
-                    JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE);
+                int confirmation = JOptionPane.showConfirmDialog(
+                        this,
+                        "Close this window to view changes?", "Data Outdated",
+                        JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE);
 
-            if (confirmation == JOptionPane.OK_OPTION) {
-                AircraftInfoFrame.this.dispose();
-            }
+                if (confirmation == JOptionPane.OK_OPTION) {
+                    AircraftInfoFrame.this.dispose();
+                }
+            });
         });
 
         createMaintenanceReportButton.addActionListener((evt) -> {

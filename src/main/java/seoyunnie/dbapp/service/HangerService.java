@@ -70,6 +70,17 @@ public class HangerService {
         return true;
     }
 
+    public boolean update(Hanger hanger) {
+        if (!cache.stream().anyMatch((h) -> h.getLocation().equals(hanger.getLocation())) ||
+                hanger.getLocation().length() > 255) {
+            return false;
+        }
+
+        dao.update(hanger);
+
+        return true;
+    }
+
     public void removeById(int id) {
         dao.delete(id);
     }

@@ -76,6 +76,18 @@ public class AircraftService {
         return true;
     }
 
+    public boolean update(Aircraft aircraft) {
+        if (!cache.stream().anyMatch((a) -> a.getRegistration().equals(aircraft.getRegistration())) ||
+                aircraft.getRegistration().length() > 10 ||
+                aircraft.getModel().length() > 10) {
+            return false;
+        }
+
+        dao.update(aircraft);
+
+        return true;
+    }
+
     public void addCapacity(AircraftCapacity aircraftCapacity) {
         capacityDAO.save(aircraftCapacity);
     }

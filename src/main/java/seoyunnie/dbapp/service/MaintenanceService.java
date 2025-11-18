@@ -18,12 +18,19 @@ import seoyunnie.dbapp.model.MaintenancePeriod;
 
 public class MaintenanceService {
     private final MaintenancePeriodDAO dao;
+
+    private final AircraftService aircraftService;
+    private final HangerService hangerService;
     private final ReplacementPartService replacementPartService;
 
     private final Set<MaintenancePeriod> cache = new HashSet<>();
 
-    public MaintenanceService(MaintenancePeriodDAO dao, ReplacementPartService replacementPartService) {
+    public MaintenanceService(MaintenancePeriodDAO dao, AircraftService aircraftService, HangerService hangerService,
+            ReplacementPartService replacementPartService) {
         this.dao = dao;
+
+        this.aircraftService = aircraftService;
+        this.hangerService = hangerService;
         this.replacementPartService = replacementPartService;
     }
 
@@ -62,6 +69,16 @@ public class MaintenanceService {
 
         dao.save(period);
 
+        Aircraft aircraft = aircraftService.getByRegistration(period.getAircraftRegistration()).get();
+        aircraft.setStatus(Aircraft.Status.UNDER_MAINTENANCE);
+
+        aircraftService.update(aircraft);
+
+        Hanger hanger = hangerService.getById(period.getHangerId()).get();
+        hanger.setStatus(Hanger.Status.OCCUPIED);
+
+        hangerService.update(hanger);
+
         return true;
     }
 
@@ -73,6 +90,16 @@ public class MaintenanceService {
         period.setCompletedAt(LocalDate.now());
 
         dao.update(period);
+
+        Aircraft aircraft = aircraftService.getByRegistration(period.getAircraftRegistration()).get();
+        aircraft.setStatus(Aircraft.Status.IN_SERVICE);
+
+        aircraftService.update(aircraft);
+
+        Hanger hanger = hangerService.getById(period.getHangerId()).get();
+        hanger.setStatus(Hanger.Status.AVAILABLE);
+
+        hangerService.update(hanger);
     }
 
     public Optional<File> createReport(MaintenancePeriod period) {
