@@ -14,6 +14,9 @@ import seoyunnie.dbapp.model.MaintenancePeriod;
 import seoyunnie.dbapp.model.ReplacementPart;
 
 public class ReplacementPartService {
+    public static final int ADDED = 1;
+    public static final int UPDATED = 2;
+
     private final ReplacementPartDAO dao;
 
     public ReplacementPartService(ReplacementPartDAO dao) {
@@ -32,17 +35,17 @@ public class ReplacementPartService {
         return dao.getAll(maintenancePeriod.getId());
     }
 
-    public boolean add(ReplacementPart part) {
+    public int add(ReplacementPart part) {
         if (getAll().stream().anyMatch(
                 (p) -> p.getNumber() == part.getNumber() && p.getMaintenanceId() == part.getMaintenanceId())) {
             dao.update(part);
 
-            return false;
+            return UPDATED;
         }
 
         dao.save(part);
 
-        return true;
+        return ADDED;
     }
 
     public Optional<File> createInventory(Aircraft aircraft) {

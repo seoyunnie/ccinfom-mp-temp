@@ -179,7 +179,7 @@ public class MaintenanceInfoFrame extends JFrame {
                         amount.get(),
                         aircraft.getRegistration(), period.getId());
 
-                if (replacementPartService.add(replacementPart)) {
+                if (replacementPartService.add(replacementPart) == ReplacementPartService.ADDED) {
                     replacementPartList.addElement(replacementPart);
 
                     return;
