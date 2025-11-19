@@ -33,9 +33,7 @@ public class AircraftService {
         if (aircraft.isEmpty()) {
             aircraft = dao.get(registration);
 
-            if (aircraft.isPresent()) {
-                cache.add(aircraft.get());
-            }
+            aircraft.ifPresent((a) -> cache.add(a));
         }
 
         return aircraft;
@@ -48,9 +46,7 @@ public class AircraftService {
         if (aircraftCapacity.isEmpty()) {
             aircraftCapacity = capacityDAO.get(model);
 
-            if (aircraftCapacity.isPresent()) {
-                capacityCache.add(aircraftCapacity.get());
-            }
+            aircraftCapacity.ifPresent((c) -> capacityCache.add(c));
         }
 
         return aircraftCapacity;

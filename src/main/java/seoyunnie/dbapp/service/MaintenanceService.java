@@ -41,11 +41,8 @@ public class MaintenanceService {
     public List<MaintenancePeriod> getAllByAircraft(Aircraft aircraft) {
         List<MaintenancePeriod> periods = dao.getAll(aircraft.getRegistration());
 
-        for (MaintenancePeriod period : periods) {
-            if (!cache.stream().anyMatch((p) -> p.getId() == period.getId())) {
-                cache.add(period);
-            }
-        }
+        cache.removeIf((p) -> p.getAircraftRegistration().equals(aircraft.getRegistration()));
+        cache.addAll(periods);
 
         return periods;
     }
@@ -53,11 +50,8 @@ public class MaintenanceService {
     public List<MaintenancePeriod> getAllByHanger(Hanger hanger) {
         List<MaintenancePeriod> periods = dao.getAll(hanger.getId());
 
-        for (MaintenancePeriod period : periods) {
-            if (!cache.stream().anyMatch((p) -> p.getId() == period.getId())) {
-                cache.add(period);
-            }
-        }
+        cache.removeIf((p) -> p.getHangerId() == hanger.getId());
+        cache.addAll(periods);
 
         return periods;
     }

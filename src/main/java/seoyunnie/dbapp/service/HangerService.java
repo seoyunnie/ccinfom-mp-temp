@@ -27,9 +27,7 @@ public class HangerService {
         if (hanger.isEmpty()) {
             hanger = dao.get(id);
 
-            if (hanger.isPresent()) {
-                cache.add(hanger.get());
-            }
+            hanger.ifPresent((h) -> cache.add(h));
         }
 
         return hanger;
