@@ -19,6 +19,7 @@ public class ReplacementPartInputDialog extends JPanel {
     private final JTextField amountInField = new JTextField(TEXT_FIELD_LENGTH);
 
     public ReplacementPartInputDialog() {
+        ((PlainDocument) numInField.getDocument()).setDocumentFilter(new IntegerDocumentFilter());
         ((PlainDocument) amountInField.getDocument()).setDocumentFilter(new IntegerDocumentFilter());
 
         setLayout(new GridLayout(3, 2, 5, 5));

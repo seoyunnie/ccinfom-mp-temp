@@ -198,7 +198,7 @@ public class MaintenanceInfoFrame extends JFrame {
     }
 
     private void initializeListElements() {
-        for (ReplacementPart part : replacementPartService.getAllByAircraft(aircraft)) {
+        for (ReplacementPart part : replacementPartService.getAllByMaintenancePeriod(period)) {
             replacementPartList.addElement(part);
         }
     }
