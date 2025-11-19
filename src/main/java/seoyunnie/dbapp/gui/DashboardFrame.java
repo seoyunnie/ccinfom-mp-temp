@@ -189,10 +189,20 @@ public class DashboardFrame extends JFrame {
 
                 var aircraft = new Aircraft(registration.get(), model.get(), Aircraft.Status.IN_SERVICE);
 
-                if (!aircraftService.add(aircraft)) {
+                int res = aircraftService.add(aircraft);
+
+                if (res == AircraftService.ALREADY_EXISTS) {
                     JOptionPane.showMessageDialog(
                             this,
                             "An aircraft with the same registration already exists.", "Taken Registration Mark",
+                            JOptionPane.WARNING_MESSAGE);
+
+                    return;
+                } else if (res == AircraftService.TOO_LONG_STRING) {
+                    JOptionPane.showMessageDialog(
+                            this,
+                            "The aircraft's Registration Mark and Model must be less than 10 characters long.",
+                            "Input Too Long",
                             JOptionPane.WARNING_MESSAGE);
 
                     return;
@@ -223,10 +233,19 @@ public class DashboardFrame extends JFrame {
             if (location != null && !location.isEmpty()) {
                 var hanger = new Hanger(location, Hanger.Status.AVAILABLE);
 
-                if (!hangerService.add(hanger)) {
+                int res = hangerService.add(hanger);
+
+                if (res == HangerService.ALREADY_EXISTS) {
                     JOptionPane.showMessageDialog(
                             this,
                             "A hanger already exists on the same location.", "Occupied Hanger Location",
+                            JOptionPane.WARNING_MESSAGE);
+
+                    return;
+                } else if (res == AircraftService.TOO_LONG_STRING) {
+                    JOptionPane.showMessageDialog(
+                            this,
+                            "The hanger's location must be less than 255 characters long.", "Input Too Long",
                             JOptionPane.WARNING_MESSAGE);
 
                     return;

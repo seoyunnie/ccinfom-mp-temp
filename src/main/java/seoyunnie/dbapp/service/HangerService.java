@@ -9,6 +9,10 @@ import seoyunnie.dbapp.dao.HangerDAO;
 import seoyunnie.dbapp.model.Hanger;
 
 public class HangerService {
+    public static final int SUCCESS = 0;
+    public static final int ALREADY_EXISTS = 1;
+    public static final int TOO_LONG_STRING = 3;
+
     private final HangerDAO dao;
 
     private final Set<Hanger> cache = new HashSet<>();
@@ -34,11 +38,8 @@ public class HangerService {
     public List<Hanger> getAll() {
         List<Hanger> hangers = dao.getAll();
 
-        for (Hanger hanger : hangers) {
-            if (!cache.stream().anyMatch((a) -> a.getId() == hanger.getId())) {
-                cache.add(hanger);
-            }
-        }
+        cache.clear();
+        cache.addAll(hangers);
 
         return hangers;
     }
@@ -59,26 +60,20 @@ public class HangerService {
         return availableHangers;
     }
 
-    public boolean add(Hanger hanger) {
-        if (cache.stream().anyMatch((h) -> h.getLocation().equals(hanger.getLocation())) ||
-                hanger.getLocation().length() > 255) {
-            return false;
+    public int add(Hanger hanger) {
+        if (cache.stream().anyMatch((h) -> h.getLocation().equals(hanger.getLocation()))) {
+            return ALREADY_EXISTS;
+        } else if (hanger.getLocation().length() > 255) {
+            return TOO_LONG_STRING;
         }
 
         dao.save(hanger);
 
-        return true;
+        return SUCCESS;
     }
 
-    public boolean update(Hanger hanger) {
-        if (!cache.stream().anyMatch((h) -> h.getLocation().equals(hanger.getLocation())) ||
-                hanger.getLocation().length() > 255) {
-            return false;
-        }
-
+    public void update(Hanger hanger) {
         dao.update(hanger);
-
-        return true;
     }
 
     public void removeById(int id) {

@@ -11,6 +11,10 @@ import seoyunnie.dbapp.model.Aircraft;
 import seoyunnie.dbapp.model.AircraftCapacity;
 
 public class AircraftService {
+    public static final int SUCCESS = 0;
+    public static final int ALREADY_EXISTS = 1;
+    public static final int TOO_LONG_STRING = 3;
+
     private final AircraftDAO dao;
     private final AircraftCapacityDAO capacityDAO;
 
@@ -55,37 +59,26 @@ public class AircraftService {
     public List<Aircraft> getAll() {
         List<Aircraft> fleet = dao.getAll();
 
-        for (Aircraft aircraft : fleet) {
-            if (!cache.stream().anyMatch((a) -> a.getRegistration().equals(aircraft.getRegistration()))) {
-                cache.add(aircraft);
-            }
-        }
+        cache.clear();
+        cache.addAll(fleet);
 
         return fleet;
     }
 
-    public boolean add(Aircraft aircraft) {
-        if (cache.stream().anyMatch((a) -> a.getRegistration().equals(aircraft.getRegistration())) ||
-                aircraft.getRegistration().length() > 10 ||
-                aircraft.getModel().length() > 10) {
-            return false;
+    public int add(Aircraft aircraft) {
+        if (cache.stream().anyMatch((a) -> a.getRegistration().equals(aircraft.getRegistration()))) {
+            return ALREADY_EXISTS;
+        } else if (aircraft.getRegistration().length() > 10 || aircraft.getModel().length() > 10) {
+            return TOO_LONG_STRING;
         }
 
         dao.save(aircraft);
 
-        return true;
+        return SUCCESS;
     }
 
-    public boolean update(Aircraft aircraft) {
-        if (!cache.stream().anyMatch((a) -> a.getRegistration().equals(aircraft.getRegistration())) ||
-                aircraft.getRegistration().length() > 10 ||
-                aircraft.getModel().length() > 10) {
-            return false;
-        }
-
+    public void update(Aircraft aircraft) {
         dao.update(aircraft);
-
-        return true;
     }
 
     public void addCapacity(AircraftCapacity aircraftCapacity) {

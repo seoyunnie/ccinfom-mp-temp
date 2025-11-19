@@ -17,6 +17,10 @@ import seoyunnie.dbapp.model.Hanger;
 import seoyunnie.dbapp.model.MaintenancePeriod;
 
 public class MaintenanceService {
+    public static final int SUCCESS = 0;
+    public static final int ALREADY_EXISTS = 1;
+    public static final int TOO_LONG_STRING = 3;
+
     private final MaintenancePeriodDAO dao;
 
     private final AircraftService aircraftService;
@@ -58,13 +62,12 @@ public class MaintenanceService {
         return periods;
     }
 
-    public boolean scheduleMaintenance(MaintenancePeriod period) {
-        if (cache.stream().anyMatch(
-                (p) -> p.getAircraftRegistration().equals(period.getAircraftRegistration()) &&
-                        p.getCompletedAt() == null)
-                ||
-                period.getType().length() > 25) {
-            return false;
+    public int scheduleMaintenance(MaintenancePeriod period) {
+        if (cache.stream().anyMatch((p) -> p.getAircraftRegistration().equals(period.getAircraftRegistration()) &&
+                p.getCompletedAt() == null)) {
+            return ALREADY_EXISTS;
+        } else if (period.getType().length() > 25) {
+            return TOO_LONG_STRING;
         }
 
         dao.save(period);
@@ -79,7 +82,7 @@ public class MaintenanceService {
 
         hangerService.update(hanger);
 
-        return true;
+        return SUCCESS;
     }
 
     public void completeMaintenance(MaintenancePeriod period) {
@@ -103,7 +106,7 @@ public class MaintenanceService {
     }
 
     public Optional<File> createReport(MaintenancePeriod period) {
-        var file = new File("maintenance_report.txt");
+        var file = new File(period.getAircraftRegistration() + "_maintenance_report.txt");
 
         try (BufferedWriter fw = new BufferedWriter(new FileWriter(file))) {
             fw.write("ID: " + period.getId() + "\n");
@@ -129,7 +132,7 @@ public class MaintenanceService {
     }
 
     public Optional<File> createScheduleReport(Aircraft aircraft) {
-        var file = new File("maintenance_schedule.txt");
+        var file = new File(aircraft.getRegistration() + "_maintenance_schedule.txt");
 
         try (BufferedWriter fw = new BufferedWriter(new FileWriter(file))) {
             fw.write("Registration Mark: " + aircraft.getRegistration() + "\n");

@@ -27,6 +27,7 @@ import seoyunnie.dbapp.gui.dialog.MaintenanceInputDialog;
 import seoyunnie.dbapp.model.Aircraft;
 import seoyunnie.dbapp.model.AircraftCapacity;
 import seoyunnie.dbapp.model.MaintenancePeriod;
+import seoyunnie.dbapp.service.AircraftService;
 import seoyunnie.dbapp.service.HangerService;
 import seoyunnie.dbapp.service.MaintenanceService;
 import seoyunnie.dbapp.service.ReplacementPartService;
@@ -203,10 +204,19 @@ public class AircraftInfoFrame extends JFrame {
                         aircraft.getRegistration(), maintenanceInDialog.getHanger().getId(),
                         MaintenancePeriod.Status.ONGOING, LocalDate.now());
 
-                if (!maintenanceService.scheduleMaintenance(maintenancePeriod)) {
+                int res = maintenanceService.scheduleMaintenance(maintenancePeriod);
+
+                if (res == MaintenanceService.ALREADY_EXISTS) {
                     JOptionPane.showMessageDialog(
                             this,
                             "The aircraft is already under maintenance.", "Aircraft Under Maintenance",
+                            JOptionPane.WARNING_MESSAGE);
+
+                    return;
+                } else if (res == AircraftService.TOO_LONG_STRING) {
+                    JOptionPane.showMessageDialog(
+                            this,
+                            "The maintenance type must be less than 25 characters long.", "Input Too Long",
                             JOptionPane.WARNING_MESSAGE);
 
                     return;
@@ -221,7 +231,6 @@ public class AircraftInfoFrame extends JFrame {
                     .filter((p) -> p.getCompletedAt() == null).findFirst();
 
             currMaintenancePeriod.ifPresent((p) -> {
-                maintenanceService.completeMaintenance(p);
 
                 int confirmation = JOptionPane.showConfirmDialog(
                         this,
@@ -229,6 +238,8 @@ public class AircraftInfoFrame extends JFrame {
                         JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE);
 
                 if (confirmation == JOptionPane.OK_OPTION) {
+                    maintenanceService.completeMaintenance(p);
+
                     AircraftInfoFrame.this.dispose();
                 }
             });

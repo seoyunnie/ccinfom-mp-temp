@@ -5,9 +5,9 @@
 **/target/
 
 # Generated Output
-maintenance_report.txt
-maintenance_schedule.txt
-replacement_parts_inventory.txt
+*_maintenance_report.txt
+*_maintenance_schedule.txt
+*_replacement_parts_inventory.txt
 
 # Miscellaneous
 **/.DS_Store

@@ -46,7 +46,7 @@ public class ReplacementPartService {
     }
 
     public Optional<File> createInventory(Aircraft aircraft) {
-        var file = new File("replacement_parts_inventory.txt");
+        var file = new File(aircraft.getRegistration() + "_replacement_parts_inventory.txt");
 
         try (BufferedWriter fw = new BufferedWriter(new FileWriter(file))) {
             fw.write("Registration Mark: " + aircraft.getRegistration() + "\n");
